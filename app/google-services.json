@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "921339430812",
+    "project_id": "abbas-5208b",
+    "storage_bucket": "abbas-5208b.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:921339430812:android:30642afa4fa140189eea59",
+        "android_client_info": {
+          "package_name": "net.pop.foodify"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDlLeGYErZQRrwsbyKge3KZ3Ngwngo3rLc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:921339430812:android:d9e9af487470660d9eea59",
+        "android_client_info": {
+          "package_name": "net.pop.projectpilot"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDlLeGYErZQRrwsbyKge3KZ3Ngwngo3rLc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
