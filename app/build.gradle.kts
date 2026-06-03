@@ -61,8 +61,6 @@ dependencies {
     androidTestImplementation(libs.androidx.junit)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     debugImplementation(libs.androidx.compose.ui.tooling)
-    // for live preview
-    debugImplementation(libs.androidx.ui.tooling)
     // for coil online images
     implementation(libs.coil.compose)
     // viewmodel
@@ -73,10 +71,23 @@ dependencies {
     ksp(libs.hilt.compiler)
     // default icons
     implementation(libs.androidx.compose.material.icons.extended)
-    // firebase remote config & Services & Crashlytics & Messaging
+    // firebase remote config & Services & Crashlytics & Messaging & Auth
     implementation(libs.firebase.config.ktx)
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.analytics)
     implementation(libs.firebase.crashlytics)
     implementation(libs.firebase.messaging)
+    implementation(libs.firebase.auth)
+    implementation(libs.firebase.firestore)
+    // supabase storage
+    implementation(libs.storage.kt)
+    // ktor client
+    implementation(libs.ktor.client.android)
+    // navigation
+    implementation(libs.androidx.navigation.compose)
+    // Security & Biometrics
+    implementation(libs.androidx.biometric)
+    // room db
+    implementation(libs.androidx.room.runtime)
+    ksp(libs.androidx.room.compiler)
 }

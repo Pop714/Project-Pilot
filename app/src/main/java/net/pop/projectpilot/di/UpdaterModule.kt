@@ -15,7 +15,6 @@ object UpdaterModule {
 
     @Provides
     @Singleton
-    fun provideAppUpdater(@ApplicationContext context: Context): AppUpdater {
-        return AppUpdater(context)
-    }
+    fun provideAppUpdater(@ApplicationContext context: Context): AppUpdater = AppUpdater(context)
+
 }

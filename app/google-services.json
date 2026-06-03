@@ -12,7 +12,12 @@
           "package_name": "net.pop.foodify"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "921339430812-moogokauo0uc8mnfp9id1i5ehoe8crma.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyDlLeGYErZQRrwsbyKge3KZ3Ngwngo3rLc"
@@ -20,7 +25,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "921339430812-moogokauo0uc8mnfp9id1i5ehoe8crma.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     },
@@ -31,7 +41,12 @@
           "package_name": "net.pop.projectpilot"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "921339430812-moogokauo0uc8mnfp9id1i5ehoe8crma.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyDlLeGYErZQRrwsbyKge3KZ3Ngwngo3rLc"
@@ -39,7 +54,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "921339430812-moogokauo0uc8mnfp9id1i5ehoe8crma.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }
