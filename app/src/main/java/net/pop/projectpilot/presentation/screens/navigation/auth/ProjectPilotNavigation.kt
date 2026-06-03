@@ -30,7 +30,6 @@ fun ProjectPilotNavigation(
     }
 
     NavHost(navController = navController, startDestination = startDestination) {
-
         composable(Screen.SavedAccounts.route) {
             SavedAccountsScreen(
                 viewModel = authViewModel,
@@ -42,7 +41,6 @@ fun ProjectPilotNavigation(
                 }
             )
         }
-
         composable(Screen.Login.route) {
             LoginScreen(
                 viewModel = authViewModel,
@@ -54,16 +52,15 @@ fun ProjectPilotNavigation(
                 }
             )
         }
-
         composable(Screen.Register.route) {
             RegisterScreen(
                 viewModel = authViewModel,
                 onNavigateToLogin = { navController.popBackStack() }
             )
         }
-
         composable(Screen.Dashboard.route) {
             MainScreen()
         }
     }
+
 }
