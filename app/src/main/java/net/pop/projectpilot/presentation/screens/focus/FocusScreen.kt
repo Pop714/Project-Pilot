@@ -12,6 +12,8 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -53,7 +55,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -61,6 +66,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import net.pop.projectpilot.presentation.components.PresetChip
+import kotlin.math.atan2
 
 @SuppressLint("DefaultLocale")
 @Composable
@@ -80,6 +86,9 @@ fun FocusScreen(
     var showCustomTimeDialog by remember { mutableStateOf(false) }
     var customMinutesInput by remember { mutableStateOf("") }
 
+    var circleCenter by remember { mutableStateOf(Offset.Zero) }
+    val maxMinutes = 240f
+
     val dndSettingsLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
     ) {
@@ -96,15 +105,38 @@ fun FocusScreen(
         }
     }
 
-    val progress = if (totalDuration > 0) timeRemaining.toFloat() / totalDuration.toFloat() else 0f
     val mins = timeRemaining / 60
     val secs = timeRemaining % 60
     val formattedTime = String.format("%02d:%02d", mins, secs)
 
+    val targetProgress = if (isRunning) {
+        if (totalDuration > 0) timeRemaining.toFloat() / totalDuration.toFloat() else 0f
+    } else {
+        (timeRemaining / 60f) / maxMinutes
+    }
+
     val animatedProgress by animateFloatAsState(
-        targetValue = progress,
+        targetValue = targetProgress,
         label = "timer_progress"
     )
+
+    fun updateTimeFromPointer(offset: Offset) {
+        if (circleCenter == Offset.Zero) return
+
+        val dx = offset.x - circleCenter.x
+        val dy = offset.y - circleCenter.y
+
+        var angle = Math.toDegrees(atan2(dy.toDouble(), dx.toDouble())).toFloat()
+
+        angle += 90f
+        if (angle < 0f) angle += 360f
+
+        var minutes = ((angle / 360f) * maxMinutes).toLong()
+        if (minutes < 1L) minutes = 1L
+        if (minutes > 240L) minutes = 240L
+
+        viewModel.setDuration(minutes)
+    }
 
     if (showCustomTimeDialog) {
         AlertDialog(
@@ -116,7 +148,7 @@ fun FocusScreen(
                     onValueChange = {
                         if (it.length <= 3 && it.all { char -> char.isDigit() }) customMinutesInput = it
                     },
-                    label = { Text("Minutes") },
+                    label = { Text("Minutes (Max 240)") },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     shape = MaterialTheme.shapes.medium,
                     singleLine = true,
@@ -126,12 +158,13 @@ fun FocusScreen(
             confirmButton = {
                 Button(
                     onClick = {
-                        val parsedMinutes = customMinutesInput.toLongOrNull()
+                        var parsedMinutes = customMinutesInput.toLongOrNull()
                         if (parsedMinutes != null && parsedMinutes > 0) {
+                            if (parsedMinutes > 240) parsedMinutes = 240
                             viewModel.setDuration(parsedMinutes)
                         }
                         showCustomTimeDialog = false
-                        customMinutesInput = "" // reset
+                        customMinutesInput = ""
                     },
                     shape = MaterialTheme.shapes.medium
                 ) {
@@ -177,6 +210,24 @@ fun FocusScreen(
                     ambientColor = MaterialTheme.colorScheme.primary
                 )
                 .background(MaterialTheme.colorScheme.surface, CircleShape)
+                .onGloballyPositioned { coordinates ->
+                    circleCenter = Offset(coordinates.size.width / 2f, coordinates.size.height / 2f)
+                }
+                .pointerInput(isRunning) {
+                    if (!isRunning) {
+                        detectTapGestures(
+                            onTap = { offset -> updateTimeFromPointer(offset) }
+                        )
+                    }
+                }
+                .pointerInput(isRunning) {
+                    if (!isRunning) {
+                        detectDragGestures(
+                            onDragStart = { offset -> updateTimeFromPointer(offset) },
+                            onDrag = { change, _ -> updateTimeFromPointer(change.position) }
+                        )
+                    }
+                }
         ) {
             CircularProgressIndicator(
                 progress = { 1f },
@@ -203,9 +254,9 @@ fun FocusScreen(
                 )
                 if (!isRunning) {
                     Text(
-                        text = "Ready",
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        style = MaterialTheme.typography.bodyLarge
+                        text = "Drag to adjust",
+                        color = MaterialTheme.colorScheme.primary,
+                        style = MaterialTheme.typography.labelMedium
                     )
                 }
             }

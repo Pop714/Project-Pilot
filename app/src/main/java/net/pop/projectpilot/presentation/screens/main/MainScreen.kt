@@ -20,7 +20,8 @@ import net.pop.projectpilot.presentation.ui.theme.BackgroundLight
 
 @Composable
 fun MainScreen(
-    viewModel: MainViewModel = hiltViewModel()
+    viewModel: MainViewModel = hiltViewModel(),
+    onNavigateToLogin: () -> Unit
 ) {
     val context = LocalContext.current
     val updateState by viewModel.updateState.collectAsStateWithLifecycle()
@@ -50,7 +51,8 @@ fun MainScreen(
                 }
                 MainContent(
                     modifier = Modifier.padding(innerPadding),
-                    profileImageUrl = profileImageUrl
+                    profileImageUrl = profileImageUrl,
+                    onNavigateToLogin = onNavigateToLogin
                 )
             }
         }

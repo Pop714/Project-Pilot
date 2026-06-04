@@ -26,11 +26,13 @@ import androidx.navigation.compose.rememberNavController
 import net.pop.projectpilot.presentation.screens.focus.FocusScreen
 import net.pop.projectpilot.presentation.screens.navigation.main.BottomNavItem
 import net.pop.projectpilot.presentation.screens.navigation.main.FloatingBottomNavigationBar
+import net.pop.projectpilot.presentation.screens.profile.ProfileScreen
 
 @Composable
 fun MainContent(
     modifier: Modifier = Modifier,
-    profileImageUrl: String? = null
+    profileImageUrl: String? = null,
+    onNavigateToLogin: () -> Unit
 ) {
 
     val navController = rememberNavController()
@@ -77,7 +79,11 @@ fun MainContent(
             composable(BottomNavItem.Focus.route) {
                 FocusScreen()
             }
-            composable(BottomNavItem.Profile.route) {}
+            composable(BottomNavItem.Profile.route) {
+                ProfileScreen {
+                    onNavigateToLogin()
+                }
+            }
         }
 
         AnimatedVisibility(

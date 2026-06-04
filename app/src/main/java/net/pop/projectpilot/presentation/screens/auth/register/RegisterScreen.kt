@@ -7,8 +7,10 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Person
@@ -37,17 +39,25 @@ fun RegisterScreen(
 ) {
     val context = LocalContext.current
 
+    // Input States
     var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var confirmPassword by remember { mutableStateOf("") }
     var imageUri by remember { mutableStateOf<Uri?>(null) }
 
+    // Error States
     var nameError by remember { mutableStateOf<String?>(null) }
     var emailError by remember { mutableStateOf<String?>(null) }
     var passwordError by remember { mutableStateOf<String?>(null) }
 
+    // Visibility States
     var passwordVisible by remember { mutableStateOf(false) }
+    var confirmPasswordVisible by remember { mutableStateOf(false) }
+
+    // Derived State for Password
     val passwordStrength = remember(password) { evaluatePasswordStrength(password) }
+    val passwordMismatchError = confirmPassword.isNotEmpty() && password != confirmPassword
 
     val authState by viewModel.authState.collectAsState()
 
@@ -61,17 +71,25 @@ fun RegisterScreen(
 
     LaunchedEffect(authState) {
         if (authState is AuthState.Success) {
-            Toast.makeText(context, "Registration successful!\nPlease check your email to verify your account.", Toast.LENGTH_LONG).show()
+            Toast.makeText(
+                context,
+                "Registration successful!\nPlease check your email to verify your account.",
+                Toast.LENGTH_LONG
+            ).show()
             viewModel.resetState()
             onNavigateToLogin()
         }
     }
 
+    val scrollState = rememberScrollState()
+
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
-            .padding(horizontal = 24.dp),
+            .padding(horizontal = 24.dp)
+            .verticalScroll(scrollState)
+            .imePadding(),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
@@ -89,48 +107,52 @@ fun RegisterScreen(
             modifier = Modifier.padding(top = 8.dp, bottom = 24.dp)
         )
 
-        Box(
-            modifier = Modifier
-                .size(100.dp)
-                .clip(CircleShape)
-                .background(MaterialTheme.colorScheme.primaryContainer)
-                .clickable { galleryLauncher.launch("image/*") },
-            contentAlignment = Alignment.Center
-        ) {
-            if (imageUri != null) {
-                AsyncImage(
-                    model = imageUri,
-                    contentDescription = "Profile Picture",
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop
-                )
-            } else {
-                Icon(
-                    imageVector = Icons.Default.Person,
-                    contentDescription = "Upload Profile Picture",
-                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                    modifier = Modifier.size(50.dp)
-                )
-                Box(
-                    modifier = Modifier
-                        .align(Alignment.BottomEnd)
-                        .size(28.dp)
-                        .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.primary),
-                    contentAlignment = Alignment.Center
-                ) {
+        // Profile Picture Picker
+        Box(modifier = Modifier.size(120.dp)) {
+            Box(
+                modifier = Modifier
+                    .size(120.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.primaryContainer)
+                    .clickable { galleryLauncher.launch("image/*") },
+                contentAlignment = Alignment.Center
+            ) {
+                if (imageUri != null) {
+                    AsyncImage(
+                        model = imageUri,
+                        contentDescription = "Profile Picture",
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
+                } else {
                     Icon(
-                        imageVector = Icons.Default.Add,
-                        contentDescription = "Add",
-                        tint = MaterialTheme.colorScheme.onPrimary,
-                        modifier = Modifier.size(16.dp)
+                        imageVector = Icons.Default.Person,
+                        contentDescription = "Upload Profile Picture",
+                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                        modifier = Modifier.size(50.dp)
                     )
                 }
+            }
+            Box(
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .size(28.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.primary),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = "Add",
+                    tint = MaterialTheme.colorScheme.onPrimary,
+                    modifier = Modifier.size(18.dp)
+                )
             }
         }
 
         Spacer(modifier = Modifier.height(24.dp))
 
+        // Name Field
         OutlinedTextField(
             value = name,
             onValueChange = {
@@ -151,6 +173,7 @@ fun RegisterScreen(
 
         Spacer(modifier = Modifier.height(8.dp))
 
+        // Email Field
         OutlinedTextField(
             value = email,
             onValueChange = {
@@ -172,6 +195,7 @@ fun RegisterScreen(
 
         Spacer(modifier = Modifier.height(8.dp))
 
+        // Password Field
         OutlinedTextField(
             value = password,
             onValueChange = {
@@ -195,6 +219,7 @@ fun RegisterScreen(
             singleLine = true
         )
 
+        // Password Strength Indicator & Error Display
         if (password.isNotEmpty() && passwordError == null) {
             Column(
                 modifier = Modifier
@@ -228,8 +253,37 @@ fun RegisterScreen(
             )
         }
 
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // Confirm Password Field
+        OutlinedTextField(
+            value = confirmPassword,
+            onValueChange = { confirmPassword = it },
+            label = { Text("Confirm Password", style = MaterialTheme.typography.bodyMedium) },
+            visualTransformation = if (confirmPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+            trailingIcon = {
+                val image = if (confirmPasswordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
+                val description = if (confirmPasswordVisible) "Hide password" else "Show password"
+
+                IconButton(onClick = { confirmPasswordVisible = !confirmPasswordVisible }) {
+                    Icon(imageVector = image, contentDescription = description)
+                }
+            },
+            isError = passwordMismatchError,
+            supportingText = {
+                if (passwordMismatchError) {
+                    Text(text = "Passwords do not match", style = MaterialTheme.typography.labelSmall)
+                }
+            },
+            modifier = Modifier.fillMaxWidth(),
+            shape = MaterialTheme.shapes.medium,
+            singleLine = true
+        )
+
         Spacer(modifier = Modifier.height(24.dp))
 
+        // Auth Error Display
         if (authState is AuthState.Error) {
             Text(
                 text = (authState as AuthState.Error).message,
@@ -239,7 +293,13 @@ fun RegisterScreen(
             )
         }
 
-        val isFormValid = name.isNotBlank() && emailError == null && passwordError == null && password.length >= 6
+        // Validate Form State
+        val isFormValid = name.isNotBlank() &&
+                emailError == null &&
+                passwordError == null &&
+                password.length >= 6 &&
+                !passwordMismatchError &&
+                confirmPassword.isNotBlank()
 
         Button(
             onClick = { viewModel.register(email, password, name, imageUri) },

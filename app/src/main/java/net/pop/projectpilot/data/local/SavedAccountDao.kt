@@ -19,4 +19,10 @@ interface SavedAccountDao {
     @Query("DELETE FROM saved_accounts WHERE email = :email")
     suspend fun deleteAccount(email: String)
 
+    @Query("UPDATE saved_accounts SET name = :newName WHERE email = :email")
+    suspend fun updateAccountName(email: String, newName: String)
+
+    @Query("SELECT EXISTS(SELECT 1 FROM saved_accounts WHERE email = :email)")
+    suspend fun isAccountSaved(email: String): Boolean
+
 }

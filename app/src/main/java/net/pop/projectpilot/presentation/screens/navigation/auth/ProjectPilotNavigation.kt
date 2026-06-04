@@ -59,7 +59,11 @@ fun ProjectPilotNavigation(
             )
         }
         composable(Screen.Dashboard.route) {
-            MainScreen()
+            MainScreen(onNavigateToLogin = {
+                navController.navigate(Screen.Login.route) {
+                    popUpTo(0) { inclusive = true }
+                }
+            })
         }
     }
 

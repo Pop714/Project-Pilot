@@ -3,6 +3,9 @@ package net.pop.projectpilot.presentation.ui.main
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.core.view.WindowCompat
 import androidx.fragment.app.FragmentActivity
 import dagger.hilt.android.AndroidEntryPoint
 import net.pop.projectpilot.permissions.RequestNotificationPermission
@@ -15,11 +18,14 @@ class MainActivity : FragmentActivity() {
         super.onCreate(savedInstanceState)
 
         enableEdgeToEdge()
+        WindowCompat.setDecorFitsSystemWindows(window, false)
         setContent {
             ProjectPilotTheme {
                 RequestNotificationPermission()
+                Surface(color = MaterialTheme.colorScheme.background) {
+                    ProjectPilotNavigation()
+                }
             }
-            ProjectPilotNavigation()
         }
     }
 
