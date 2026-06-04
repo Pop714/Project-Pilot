@@ -35,11 +35,6 @@ class AuthViewModel @Inject constructor(
     private val _authState = MutableStateFlow<AuthState>(AuthState.Idle)
     val authState: StateFlow<AuthState> = _authState.asStateFlow()
 
-    fun isUserLoggedIn(): Boolean {
-        val user = auth.currentUser
-        return user != null && user.isEmailVerified
-    }
-
     val savedAccounts: StateFlow<List<SavedAccount>> = savedAccountDao.getAllAccounts()
         .stateIn(
             scope = viewModelScope,

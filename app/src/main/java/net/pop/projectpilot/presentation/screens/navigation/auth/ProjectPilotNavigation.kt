@@ -3,7 +3,6 @@ package net.pop.projectpilot.presentation.screens.navigation.auth
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -20,12 +19,10 @@ fun ProjectPilotNavigation(
     navController: NavHostController = rememberNavController(),
     authViewModel: AuthViewModel = hiltViewModel()
 ) {
-    val isLoggedIn = remember { authViewModel.isUserLoggedIn() }
     val savedAccounts by authViewModel.savedAccounts.collectAsState()
 
     val startDestination = when {
         savedAccounts.isNotEmpty() -> Screen.SavedAccounts.route
-        isLoggedIn -> Screen.Dashboard.route
         else -> Screen.Login.route
     }
 
