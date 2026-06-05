@@ -1,5 +1,6 @@
 package net.pop.projectpilot.presentation.screens.main
 
+import android.net.Uri
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -19,16 +20,21 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
+import net.pop.projectpilot.data.firestore.Project
 import net.pop.projectpilot.presentation.screens.focus.FocusScreen
 import net.pop.projectpilot.presentation.screens.home.HomeScreen
 import net.pop.projectpilot.presentation.screens.navigation.main.BottomNavItem
 import net.pop.projectpilot.presentation.screens.navigation.main.FloatingBottomNavigationBar
 import net.pop.projectpilot.presentation.screens.profile.ProfileScreen
-import net.pop.projectpilot.presentation.screens.projects.AllProjectsScreen
+import net.pop.projectpilot.presentation.screens.projects.add.AddProjectScreen
+import net.pop.projectpilot.presentation.screens.projects.display.ProjectsScreen
+import com.google.gson.Gson
 
 @Composable
 fun MainContent(
@@ -77,20 +83,54 @@ fun MainContent(
             popExitTransition = { fadeOut(animationSpec = tween(700)) }
         ) {
             composable(BottomNavItem.Home.route) {
-                HomeScreen {
-                    navController.navigate(BottomNavItem.Projects.route) {
-                        navController.graph.startDestinationRoute?.let { route ->
-                            popUpTo(route) {
-                                saveState = true
+                HomeScreen(
+                    onNavigateToAllProjects = {
+                        navController.navigate(BottomNavItem.Projects.route) {
+                            navController.graph.startDestinationRoute?.let { route ->
+                                popUpTo(route) {
+                                    saveState = true
+                                }
+                                launchSingleTop = true
+                                restoreState = true
                             }
-                            launchSingleTop = true
-                            restoreState = true
                         }
+                    },
+                    onNavigateToProjectDetails = { project ->
+                        val projectJson = Uri.encode(Gson().toJson(project))
+                        navController.navigate("${BottomNavItem.ProjectDetails.route}/$projectJson")
                     }
-                }
+                )
             }
             composable(BottomNavItem.Projects.route) {
-                AllProjectsScreen()
+                ProjectsScreen(
+                    onNavigateBack = { navController.navigateUp() },
+                    onNavigateToAddProject = { navController.navigate(BottomNavItem.AddProject.route) },
+                    onNavigateToProjectDetails = { project ->
+                        val projectJson = Uri.encode(Gson().toJson(project))
+                        navController.navigate("${BottomNavItem.ProjectDetails.route}/$projectJson")
+                    }
+                )
+            }
+            composable(
+                route = "${BottomNavItem.ProjectDetails.route}/{projectJson}",
+                arguments = listOf(
+                    navArgument("projectJson") {
+                        type = NavType.StringType
+                    }
+                )) { backStackEntry ->
+                val projectJson = backStackEntry.arguments?.getString("projectJson")
+                val project = Gson().fromJson(projectJson, Project::class.java)
+                if (project != null) {
+                    /* ProjectDetailsScreen(
+                        project = project,
+                        onNavigateBack = { navController.navigateUp() }
+                    ) */
+                }
+            }
+            composable(BottomNavItem.AddProject.route) {
+                AddProjectScreen {
+                    navController.navigateUp()
+                }
             }
             composable(BottomNavItem.Focus.route) {
                 FocusScreen()

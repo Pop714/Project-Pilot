@@ -36,6 +36,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import net.pop.projectpilot.data.firestore.Project
 import net.pop.projectpilot.presentation.components.ProjectCard
 import net.pop.projectpilot.presentation.components.SectionHeader
 import net.pop.projectpilot.presentation.components.StatCard
@@ -43,7 +44,8 @@ import net.pop.projectpilot.presentation.components.StatCard
 @Composable
 fun HomeScreen(
     viewModel: HomeViewModel = hiltViewModel(),
-    onNavigateToAllProjects: () -> Unit
+    onNavigateToAllProjects: () -> Unit,
+    onNavigateToProjectDetails: (Project) -> Unit
 ) {
 
     val state by viewModel.state.collectAsState()
@@ -60,6 +62,7 @@ fun HomeScreen(
                     color = MaterialTheme.colorScheme.primary
                 )
             }
+
             is HomeState.Error -> {
                 Column(
                     modifier = Modifier
@@ -85,6 +88,7 @@ fun HomeScreen(
                     }
                 }
             }
+
             is HomeState.Success -> {
                 LazyColumn(
                     modifier = Modifier
@@ -136,14 +140,19 @@ fun HomeScreen(
 
                     item {
                         Spacer(modifier = Modifier.height(24.dp))
-                        SectionHeader(title = "Recent Projects", onActionClick = onNavigateToAllProjects)
+                        SectionHeader(
+                            title = "Recent Projects",
+                            onActionClick = onNavigateToAllProjects
+                        )
                         Spacer(modifier = Modifier.height(12.dp))
                     }
 
                     if (currentState.recentProjects.isEmpty()) {
                         item {
                             Card(
-                                modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 8.dp),
                                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
                             ) {
                                 Column(
@@ -165,14 +174,19 @@ fun HomeScreen(
                                         style = MaterialTheme.typography.bodyMedium,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                                         textAlign = TextAlign.Center,
-                                        modifier = Modifier.fillMaxWidth().padding(32.dp)
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(32.dp)
                                     )
                                 }
                             }
                         }
                     } else {
                         items(currentState.recentProjects, key = { it.id }) { project ->
-                            ProjectCard(project = project)
+                            ProjectCard(
+                                project = project,
+                                navigateToProjectDetails = onNavigateToProjectDetails
+                            )
                         }
                     }
 

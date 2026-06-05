@@ -38,24 +38,28 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val userDeferred = async { firestore.collection("users").document(userId).get().await() }
+
                 val allProjectsDeferred = async {
                     firestore.collection("projects")
-                        .whereEqualTo("userId", userId)
+                        .whereArrayContains("members", userId)
                         .get().await()
                 }
+
                 val recentProjectsDeferred = async {
                     firestore.collection("projects")
-                        .whereEqualTo("userId", userId)
+                        .whereArrayContains("members", userId)
                         .orderBy("createdAt", Query.Direction.DESCENDING)
                         .limit(3)
                         .get().await()
                 }
+
                 val tasksDeferred = async {
                     firestore.collection("tasks")
                         .whereEqualTo("userId", userId)
                         .whereEqualTo("status", "pending")
                         .get().await()
                 }
+
                 val userDoc = userDeferred.await()
                 val allProjectsSnapshot = allProjectsDeferred.await()
                 val recentProjectsSnapshot = recentProjectsDeferred.await()

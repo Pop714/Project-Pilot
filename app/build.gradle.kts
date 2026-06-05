@@ -92,4 +92,6 @@ dependencies {
     ksp(libs.androidx.room.compiler)
     // data store
     implementation(libs.androidx.datastore.preferences)
+    // gson
+    implementation(libs.gson)
 }

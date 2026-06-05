@@ -7,7 +7,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.core.view.WindowCompat
 import androidx.fragment.app.FragmentActivity
 import dagger.hilt.android.AndroidEntryPoint
 import net.pop.projectpilot.domain.preferences.ThemePreferences
@@ -27,7 +26,6 @@ class MainActivity : FragmentActivity() {
         super.onCreate(savedInstanceState)
 
         enableEdgeToEdge()
-        WindowCompat.setDecorFitsSystemWindows(window, false)
 
         setContent {
             val currentTheme by themePreferences.themeMode.collectAsState(initial = ThemeMode.SYSTEM)
