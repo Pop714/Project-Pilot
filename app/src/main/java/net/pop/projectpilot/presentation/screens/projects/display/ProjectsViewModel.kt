@@ -28,14 +28,17 @@ class ProjectsViewModel @Inject constructor(
         fetchUserProjects()
     }
 
-    fun fetchUserProjects() {
+    fun fetchUserProjects(isRefresh: Boolean = false) {
         val userId = auth.currentUser?.uid
         if (userId == null) {
             _uiState.value = ProjectsUiState.Error("User not logged in")
             return
         }
 
-        _uiState.value = ProjectsUiState.Loading
+        if (!isRefresh) {
+            _uiState.value = ProjectsUiState.Loading
+        }
+
         viewModelScope.launch {
             try {
                 val allProjectsDeferred = async {

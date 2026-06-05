@@ -94,4 +94,6 @@ dependencies {
     implementation(libs.androidx.datastore.preferences)
     // gson
     implementation(libs.gson)
+    // material 3
+    implementation(libs.androidx.material3)
 }

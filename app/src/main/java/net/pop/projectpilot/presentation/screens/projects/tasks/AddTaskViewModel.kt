@@ -1,0 +1,69 @@
+package net.pop.projectpilot.presentation.screens.projects.tasks
+
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+import javax.inject.Inject
+
+@HiltViewModel
+class AddTaskViewModel @Inject constructor(
+    private val auth: FirebaseAuth,
+    private val firestore: FirebaseFirestore
+) : ViewModel() {
+    private val _state = MutableStateFlow<AddTaskState>(AddTaskState.Idle)
+    val state: StateFlow<AddTaskState> = _state.asStateFlow()
+
+    fun saveTask(projectId: String, title: String, status: String, voicePath: String = "") {
+        val userId = auth.currentUser?.uid
+        if (userId == null) {
+            _state.value = AddTaskState.Error("User not logged in.")
+            return
+        }
+
+        if (title.isBlank()) {
+            _state.value = AddTaskState.Error("Task title cannot be empty.")
+            return
+        }
+
+        _state.value = AddTaskState.Loading
+
+        viewModelScope.launch {
+            try {
+                val dateFormat = SimpleDateFormat("yyyy-MM-dd hh:mm a", Locale.getDefault())
+                val currentTime = dateFormat.format(Date())
+
+                val docRef = firestore.collection("tasks").document()
+
+                val newTask = hashMapOf(
+                    "id" to docRef.id,
+                    "projectId" to projectId,
+                    "creatorId" to userId,
+                    "title" to title.trim(),
+                    "status" to status,
+                    "createdAt" to currentTime,
+                    "voicePath" to voicePath
+                )
+
+                docRef.set(newTask).await()
+                _state.value = AddTaskState.Success
+
+            } catch (e: Exception) {
+                _state.value = AddTaskState.Error(e.message ?: "Failed to save task")
+            }
+        }
+    }
+
+    fun resetState() {
+        _state.value = AddTaskState.Idle
+    }
+}

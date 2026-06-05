@@ -32,9 +32,11 @@ import net.pop.projectpilot.presentation.screens.home.HomeScreen
 import net.pop.projectpilot.presentation.screens.navigation.main.BottomNavItem
 import net.pop.projectpilot.presentation.screens.navigation.main.FloatingBottomNavigationBar
 import net.pop.projectpilot.presentation.screens.profile.ProfileScreen
-import net.pop.projectpilot.presentation.screens.projects.add.AddProjectScreen
 import net.pop.projectpilot.presentation.screens.projects.display.ProjectsScreen
 import com.google.gson.Gson
+import net.pop.projectpilot.presentation.screens.projects.addEdit.AddEditProjectScreen
+import net.pop.projectpilot.presentation.screens.projects.details.ProjectDetailsScreen
+import net.pop.projectpilot.presentation.screens.projects.tasks.AddTaskScreen
 
 @Composable
 fun MainContent(
@@ -121,16 +123,57 @@ fun MainContent(
                 val projectJson = backStackEntry.arguments?.getString("projectJson")
                 val project = Gson().fromJson(projectJson, Project::class.java)
                 if (project != null) {
-                    /* ProjectDetailsScreen(
+                    ProjectDetailsScreen(
                         project = project,
-                        onNavigateBack = { navController.navigateUp() }
-                    ) */
+                        onNavigateBack = { navController.navigateUp() },
+                        onNavigateToEdit = { projectToEdit ->
+                            val editJson = Uri.encode(Gson().toJson(projectToEdit))
+                            navController.navigate("${BottomNavItem.AddProject.route}?projectJson=$editJson")
+                        }, onNavigateToAddTask = {
+                            navController.navigate("${BottomNavItem.AddTask.route}/${project.id}")
+                        }
+                    )
                 }
             }
-            composable(BottomNavItem.AddProject.route) {
-                AddProjectScreen {
-                    navController.navigateUp()
+            composable(
+                route = "${BottomNavItem.AddProject.route}?projectJson={projectJson}",
+                arguments = listOf(
+                    navArgument("projectJson") {
+                        type = NavType.StringType
+                        nullable = true
+                        defaultValue = null
+                    }
+                )
+            ) { backStackEntry ->
+                val projectJson = backStackEntry.arguments?.getString("projectJson")
+                val projectToEdit = if (!projectJson.isNullOrEmpty()) {
+                    Gson().fromJson(projectJson, Project::class.java)
+                } else {
+                    null
                 }
+                AddEditProjectScreen (
+                    projectToEdit = projectToEdit,
+                    onNavigateBack = { navController.navigateUp() }
+                )
+            }
+            composable(
+                route = "${BottomNavItem.AddTask.route}/{projectId}",
+                arguments = listOf(
+                    navArgument("projectId") {
+                        type = NavType.StringType
+                    }
+                )
+            ) { backStackEntry ->
+                val projectId = backStackEntry.arguments?.getString("projectId")
+                if (projectId != null) {
+                    AddTaskScreen(
+                        projectId = projectId,
+                        onNavigateBack = { navController.navigateUp() }
+                    )
+                }
+            }
+            composable(BottomNavItem.TaskDetails.route) {
+
             }
             composable(BottomNavItem.Focus.route) {
                 FocusScreen()

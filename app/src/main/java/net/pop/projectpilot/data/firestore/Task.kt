@@ -5,5 +5,6 @@ data class Task(
     val title: String = "",
     val status: String = "",
     val createdAt: String = "",
-    val voicePath: String = ""
+    val voicePath: String = "",
+    val projectId: String = ""
 )

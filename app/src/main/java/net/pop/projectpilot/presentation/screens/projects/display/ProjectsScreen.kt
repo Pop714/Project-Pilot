@@ -34,9 +34,14 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -55,6 +60,13 @@ fun ProjectsScreen(
     onNavigateToProjectDetails: (Project) -> Unit
 ) {
     val state by viewModel.uiState.collectAsState()
+    var isRefreshing by remember { mutableStateOf(false) }
+
+    LaunchedEffect(state) {
+        if (state is ProjectsUiState.Success || state is ProjectsUiState.Error) {
+            isRefreshing = false
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -112,115 +124,132 @@ fun ProjectsScreen(
             },
             modifier = Modifier.fillMaxSize()
         ) { currentState ->
-            Box(modifier = Modifier.fillMaxSize()) {
-                when (currentState) {
-                    is ProjectsUiState.Loading -> {
-                        CircularProgressIndicator(
-                            modifier = Modifier.align(Alignment.Center),
-                            color = MaterialTheme.colorScheme.primary,
-                            strokeWidth = 4.dp
-                        )
-                    }
-
-                    is ProjectsUiState.Error -> {
-                        Column(
-                            modifier = Modifier
-                                .align(Alignment.Center)
-                                .padding(24.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Surface(
-                                shape = CircleShape,
-                                color = MaterialTheme.colorScheme.errorContainer,
-                                modifier = Modifier.size(72.dp)
-                            ) {
-                                Box(contentAlignment = Alignment.Center) {
-                                    Icon(
-                                        imageVector = Icons.Default.Warning,
-                                        contentDescription = "Error",
-                                        tint = MaterialTheme.colorScheme.onErrorContainer,
-                                        modifier = Modifier.size(36.dp)
-                                    )
-                                }
-                            }
-                            Spacer(modifier = Modifier.height(24.dp))
-                            Text(
-                                text = currentState.message,
-                                color = MaterialTheme.colorScheme.onBackground,
-                                style = MaterialTheme.typography.titleMedium,
-                                textAlign = TextAlign.Center
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+            ) {
+                PullToRefreshBox(
+                    isRefreshing = isRefreshing,
+                    onRefresh = {
+                        isRefreshing = true
+                        viewModel.fetchUserProjects(isRefresh = true)
+                    },
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    when (currentState) {
+                        is ProjectsUiState.Loading -> {
+                            CircularProgressIndicator(
+                                modifier = Modifier.align(Alignment.Center),
+                                color = MaterialTheme.colorScheme.primary,
+                                strokeWidth = 4.dp
                             )
-                            Spacer(modifier = Modifier.height(24.dp))
-                            Button(
-                                onClick = { viewModel.fetchUserProjects() },
-                                shape = MaterialTheme.shapes.medium,
-                                contentPadding = PaddingValues(horizontal = 32.dp, vertical = 12.dp)
+                        }
+
+                        is ProjectsUiState.Error -> {
+                            Column(
+                                modifier = Modifier
+                                    .align(Alignment.Center)
+                                    .padding(24.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally
                             ) {
-                                Text("Retry", style = MaterialTheme.typography.labelLarge)
+                                Surface(
+                                    shape = CircleShape,
+                                    color = MaterialTheme.colorScheme.errorContainer,
+                                    modifier = Modifier.size(72.dp)
+                                ) {
+                                    Box(contentAlignment = Alignment.Center) {
+                                        Icon(
+                                            imageVector = Icons.Default.Warning,
+                                            contentDescription = "Error",
+                                            tint = MaterialTheme.colorScheme.onErrorContainer,
+                                            modifier = Modifier.size(36.dp)
+                                        )
+                                    }
+                                }
+                                Spacer(modifier = Modifier.height(24.dp))
+                                Text(
+                                    text = currentState.message,
+                                    color = MaterialTheme.colorScheme.onBackground,
+                                    style = MaterialTheme.typography.titleMedium,
+                                    textAlign = TextAlign.Center
+                                )
+                                Spacer(modifier = Modifier.height(24.dp))
+                                Button(
+                                    onClick = { viewModel.fetchUserProjects() },
+                                    shape = MaterialTheme.shapes.medium,
+                                    contentPadding = PaddingValues(
+                                        horizontal = 32.dp,
+                                        vertical = 12.dp
+                                    )
+                                ) {
+                                    Text("Retry", style = MaterialTheme.typography.labelLarge)
+                                }
                             }
                         }
-                    }
 
-                    is ProjectsUiState.Success -> {
-                        if (currentState.projects.isEmpty()) {
-                            Card(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .align(Alignment.Center),
-                                shape = MaterialTheme.shapes.large,
-                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-                            ) {
-                                Column(
+                        is ProjectsUiState.Success -> {
+                            if (currentState.projects.isEmpty()) {
+                                Card(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .padding(40.dp),
-                                    horizontalAlignment = Alignment.CenterHorizontally,
-                                    verticalArrangement = Arrangement.Center
+                                        .align(Alignment.Center),
+                                    shape = MaterialTheme.shapes.large,
+                                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                                 ) {
-                                    Surface(
-                                        shape = CircleShape,
-                                        color = MaterialTheme.colorScheme.primaryContainer,
-                                        modifier = Modifier.size(80.dp)
+                                    Column(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(40.dp),
+                                        horizontalAlignment = Alignment.CenterHorizontally,
+                                        verticalArrangement = Arrangement.Center
                                     ) {
-                                        Box(contentAlignment = Alignment.Center) {
-                                            Icon(
-                                                imageVector = Icons.Outlined.FolderOpen,
-                                                contentDescription = "Empty Projects",
-                                                tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                                                modifier = Modifier.size(40.dp)
-                                            )
+                                        Surface(
+                                            shape = CircleShape,
+                                            color = MaterialTheme.colorScheme.primaryContainer,
+                                            modifier = Modifier.size(80.dp)
+                                        ) {
+                                            Box(contentAlignment = Alignment.Center) {
+                                                Icon(
+                                                    imageVector = Icons.Outlined.FolderOpen,
+                                                    contentDescription = "Empty Projects",
+                                                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                                                    modifier = Modifier.size(40.dp)
+                                                )
+                                            }
                                         }
+                                        Spacer(modifier = Modifier.height(24.dp))
+                                        Text(
+                                            text = "No Projects Yet",
+                                            style = MaterialTheme.typography.titleLarge.copy(
+                                                fontWeight = FontWeight.Bold
+                                            ),
+                                            color = MaterialTheme.colorScheme.onSurface
+                                        )
+                                        Spacer(modifier = Modifier.height(8.dp))
+                                        Text(
+                                            text = "You don't have any projects.\nTap the + button above to create your first one!",
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            textAlign = TextAlign.Center
+                                        )
                                     }
-                                    Spacer(modifier = Modifier.height(24.dp))
-                                    Text(
-                                        text = "No Projects Yet",
-                                        style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                                        color = MaterialTheme.colorScheme.onSurface
-                                    )
-                                    Spacer(modifier = Modifier.height(8.dp))
-                                    Text(
-                                        text = "You don't have any projects.\nTap the + button above to create your first one!",
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        textAlign = TextAlign.Center
-                                    )
                                 }
-                            }
-                        } else {
-                            LazyColumn(
-                                modifier = Modifier.fillMaxSize(),
-                                verticalArrangement = Arrangement.spacedBy(16.dp),
-                                contentPadding = PaddingValues(bottom = 96.dp)
-                            ) {
-                                items(
-                                    items = currentState.projects,
-                                    key = { it.id }
-                                ) { project ->
-                                    ProjectCard(
-                                        project = project,
-                                        navigateToProjectDetails = onNavigateToProjectDetails
-                                    )
+                            } else {
+                                LazyColumn(
+                                    modifier = Modifier.fillMaxSize(),
+                                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                                    contentPadding = PaddingValues(bottom = 96.dp)
+                                ) {
+                                    items(
+                                        items = currentState.projects,
+                                        key = { it.id }
+                                    ) { project ->
+                                        ProjectCard(
+                                            project = project,
+                                            navigateToProjectDetails = onNavigateToProjectDetails
+                                        )
+                                    }
                                 }
                             }
                         }

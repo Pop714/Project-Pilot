@@ -9,4 +9,5 @@ data class Project(
     val lastUpdated: String = "",
     val createdAt: String = "",
     val members: List<String> = emptyList(),
+    val userId: String = ""
 )
