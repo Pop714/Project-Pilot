@@ -146,7 +146,8 @@ fun FocusScreen(
                 OutlinedTextField(
                     value = customMinutesInput,
                     onValueChange = {
-                        if (it.length <= 3 && it.all { char -> char.isDigit() }) customMinutesInput = it
+                        if (it.length <= 3 && it.all { char -> char.isDigit() }) customMinutesInput =
+                            it
                     },
                     label = { Text("Minutes (Max 240)") },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
@@ -287,7 +288,7 @@ fun FocusScreen(
             modifier = Modifier.fillMaxWidth()
         ) {
             Row(
-                modifier = Modifier.padding(16.dp),
+                modifier = Modifier.fillMaxWidth().padding(16.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
@@ -343,7 +344,11 @@ fun FocusScreen(
                     .size(56.dp)
                     .background(MaterialTheme.colorScheme.surface, CircleShape)
             ) {
-                Icon(Icons.Default.Refresh, contentDescription = "Reset", tint = MaterialTheme.colorScheme.onSurface)
+                Icon(
+                    Icons.Default.Refresh,
+                    contentDescription = "Reset",
+                    tint = MaterialTheme.colorScheme.onSurface
+                )
             }
 
             Spacer(modifier = Modifier.width(24.dp))

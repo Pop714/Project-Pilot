@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Clear
@@ -19,6 +20,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.FragmentActivity
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -36,6 +39,10 @@ fun SavedAccountsScreen(
     val context = LocalContext.current
     val authState by viewModel.authState.collectAsState()
     val savedAccounts by viewModel.savedAccounts.collectAsState()
+
+    var showPasswordFallbackDialog by remember { mutableStateOf(false) }
+    var fallbackEmail by remember { mutableStateOf("") }
+    var fallbackPassword by remember { mutableStateOf("") }
 
     LaunchedEffect(authState) {
         if (authState is AuthState.Success) {
@@ -73,6 +80,8 @@ fun SavedAccountsScreen(
                                 },
                                 onError = { errorMessage ->
                                     Toast.makeText(context, errorMessage, Toast.LENGTH_SHORT).show()
+                                    fallbackEmail = account.email
+                                    showPasswordFallbackDialog = true
                                 }
                             )
                         },
@@ -88,7 +97,6 @@ fun SavedAccountsScreen(
                             .fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        // Profile Avatar
                         Box(
                             modifier = Modifier
                                 .size(50.dp)
@@ -100,7 +108,9 @@ fun SavedAccountsScreen(
                                 AsyncImage(
                                     model = account.profileImageUrl,
                                     contentDescription = "Profile Picture",
-                                    modifier = Modifier.fillMaxSize().size(45.dp),
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .size(45.dp),
                                     contentScale = ContentScale.Crop
                                 )
                             } else {
@@ -114,7 +124,6 @@ fun SavedAccountsScreen(
 
                         Spacer(modifier = Modifier.width(16.dp))
 
-                        // Text Details (weight(1f) ensures it takes up available space)
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
                                 text = account.name,
@@ -128,7 +137,6 @@ fun SavedAccountsScreen(
                             )
                         }
 
-                        // Remove Account Button
                         IconButton(
                             onClick = { viewModel.removeSavedAccount(account.email) }
                         ) {
@@ -168,5 +176,56 @@ fun SavedAccountsScreen(
                 style = MaterialTheme.typography.bodyMedium
             )
         }
+    }
+
+    if (showPasswordFallbackDialog) {
+        AlertDialog(
+            onDismissRequest = {
+                showPasswordFallbackDialog = false
+                fallbackPassword = ""
+            },
+            title = { Text("Authentication Required") },
+            text = {
+                Column {
+                    Text(
+                        text = "Biometric authentication failed or was cancelled. Please enter your password for ${fallbackEmail}.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.padding(bottom = 12.dp)
+                    )
+                    OutlinedTextField(
+                        value = fallbackPassword,
+                        onValueChange = { fallbackPassword = it },
+                        label = { Text("Password") },
+                        singleLine = true,
+                        visualTransformation = PasswordVisualTransformation(),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = MaterialTheme.shapes.medium
+                    )
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        viewModel.login(fallbackEmail, fallbackPassword, false)
+                        showPasswordFallbackDialog = false
+                        fallbackPassword = ""
+                    },
+                    enabled = fallbackPassword.isNotBlank()
+                ) {
+                    Text("Log In")
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        showPasswordFallbackDialog = false
+                        fallbackPassword = ""
+                    }
+                ) {
+                    Text("Cancel")
+                }
+            }
+        )
     }
 }

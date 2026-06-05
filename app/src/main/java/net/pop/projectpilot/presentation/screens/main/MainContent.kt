@@ -24,9 +24,11 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import net.pop.projectpilot.presentation.screens.focus.FocusScreen
+import net.pop.projectpilot.presentation.screens.home.HomeScreen
 import net.pop.projectpilot.presentation.screens.navigation.main.BottomNavItem
 import net.pop.projectpilot.presentation.screens.navigation.main.FloatingBottomNavigationBar
 import net.pop.projectpilot.presentation.screens.profile.ProfileScreen
+import net.pop.projectpilot.presentation.screens.projects.AllProjectsScreen
 
 @Composable
 fun MainContent(
@@ -74,8 +76,22 @@ fun MainContent(
             popEnterTransition = { fadeIn(animationSpec = tween(700)) },
             popExitTransition = { fadeOut(animationSpec = tween(700)) }
         ) {
-            composable(BottomNavItem.Home.route) {}
-            composable(BottomNavItem.Projects.route) {}
+            composable(BottomNavItem.Home.route) {
+                HomeScreen {
+                    navController.navigate(BottomNavItem.Projects.route) {
+                        navController.graph.startDestinationRoute?.let { route ->
+                            popUpTo(route) {
+                                saveState = true
+                            }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    }
+                }
+            }
+            composable(BottomNavItem.Projects.route) {
+                AllProjectsScreen()
+            }
             composable(BottomNavItem.Focus.route) {
                 FocusScreen()
             }
