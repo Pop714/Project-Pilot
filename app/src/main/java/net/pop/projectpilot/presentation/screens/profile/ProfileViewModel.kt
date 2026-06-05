@@ -12,14 +12,18 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.storage.storage
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import net.pop.projectpilot.data.local.SavedAccountDao
 import net.pop.projectpilot.data.model.SavedAccount
+import net.pop.projectpilot.domain.preferences.ThemePreferences
 import javax.inject.Inject
+import net.pop.projectpilot.presentation.ui.theme.ThemeMode
 
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
@@ -27,6 +31,7 @@ class ProfileViewModel @Inject constructor(
     private val firestore: FirebaseFirestore,
     private val supabaseClient: SupabaseClient,
     private val savedAccountDao: SavedAccountDao,
+    private val themePreferences: ThemePreferences,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
 
@@ -66,10 +71,21 @@ class ProfileViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 firestore.collection("users").document(userId).update("name", newName).await()
-                savedAccountDao.updateAccountName(email =  _state.value.email, newName = newName)
-                _state.update { it.copy(name = newName, isLoading = false, successMessage = "Name updated successfully") }
+                savedAccountDao.updateAccountName(email = _state.value.email, newName = newName)
+                _state.update {
+                    it.copy(
+                        name = newName,
+                        isLoading = false,
+                        successMessage = "Name updated successfully"
+                    )
+                }
             } catch (e: Exception) {
-                _state.update { it.copy(error = e.message ?: "Failed to update name", isLoading = false) }
+                _state.update {
+                    it.copy(
+                        error = e.message ?: "Failed to update name",
+                        isLoading = false
+                    )
+                }
             }
         }
     }
@@ -79,7 +95,8 @@ class ProfileViewModel @Inject constructor(
         _state.update { it.copy(isLoading = true) }
         viewModelScope.launch {
             try {
-                val imageBytes = context.contentResolver.openInputStream(imageUri)?.use { it.readBytes() }
+                val imageBytes =
+                    context.contentResolver.openInputStream(imageUri)?.use { it.readBytes() }
                 if (imageBytes != null) {
                     val bucket = supabaseClient.storage.from("profile_pictures")
                     val fileName = "$userId.jpg"
@@ -87,10 +104,15 @@ class ProfileViewModel @Inject constructor(
                     bucket.upload(fileName, imageBytes) { upsert = true }
                     val newUrl = bucket.publicUrl(fileName)
 
-                    firestore.collection("users").document(userId).update("profileImageUrl", newUrl).await()
+                    firestore.collection("users").document(userId).update("profileImageUrl", newUrl)
+                        .await()
 
                     _state.update {
-                        it.copy(profileImageUrl = newUrl, isLoading = false, successMessage = "Profile picture updated")
+                        it.copy(
+                            profileImageUrl = newUrl,
+                            isLoading = false,
+                            successMessage = "Profile picture updated"
+                        )
                     }
                 }
             } catch (_: Exception) {
@@ -104,7 +126,12 @@ class ProfileViewModel @Inject constructor(
         viewModelScope.launch {
             if (currentState.isAccountSaved) {
                 savedAccountDao.deleteAccount(currentState.email)
-                _state.update { it.copy(isAccountSaved = false, successMessage = "Account removed from saved devices") }
+                _state.update {
+                    it.copy(
+                        isAccountSaved = false,
+                        successMessage = "Account removed from saved devices"
+                    )
+                }
             } else {
                 if (password != null) {
                     val newAccount = SavedAccount(
@@ -114,7 +141,12 @@ class ProfileViewModel @Inject constructor(
                         profileImageUrl = currentState.profileImageUrl
                     )
                     savedAccountDao.insertAccount(newAccount)
-                    _state.update { it.copy(isAccountSaved = true, successMessage = "Account saved securely") }
+                    _state.update {
+                        it.copy(
+                            isAccountSaved = true,
+                            successMessage = "Account saved securely"
+                        )
+                    }
                 }
             }
         }
@@ -124,7 +156,13 @@ class ProfileViewModel @Inject constructor(
         val user = auth.currentUser ?: return
         val email = user.email ?: return
 
-        _state.update { it.copy(isUpdatingPassword = true, passwordUpdateError = null, passwordUpdateSuccess = false) }
+        _state.update {
+            it.copy(
+                isUpdatingPassword = true,
+                passwordUpdateError = null,
+                passwordUpdateSuccess = false
+            )
+        }
 
         viewModelScope.launch {
             try {
@@ -151,7 +189,8 @@ class ProfileViewModel @Inject constructor(
                 _state.update {
                     it.copy(
                         isUpdatingPassword = false,
-                        passwordUpdateError = e.message ?: "Failed to update password. Check your current password."
+                        passwordUpdateError = e.message
+                            ?: "Failed to update password. Check your current password."
                     )
                 }
             }
@@ -171,5 +210,17 @@ class ProfileViewModel @Inject constructor(
         _state.update { it.copy(error = null, successMessage = null) }
     }
 
+    val currentTheme: StateFlow<ThemeMode> = themePreferences.themeMode
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = ThemeMode.SYSTEM
+        )
+
+    fun updateTheme(mode: ThemeMode) {
+        viewModelScope.launch {
+            themePreferences.saveTheme(mode)
+        }
+    }
 
 }

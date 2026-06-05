@@ -25,6 +25,7 @@ import net.pop.projectpilot.presentation.components.EditNameDialog
 import net.pop.projectpilot.presentation.components.EditPasswordDialog
 import net.pop.projectpilot.presentation.components.ProfileOptionCard
 import net.pop.projectpilot.presentation.components.SaveAccountPasswordDialog
+import net.pop.projectpilot.presentation.ui.theme.ThemeMode
 
 @Composable
 fun ProfileScreen(
@@ -37,6 +38,9 @@ fun ProfileScreen(
     var showNameDialog by remember { mutableStateOf(false) }
     var showPasswordDialog by remember { mutableStateOf(false) }
     var showSaveAccountDialog by remember { mutableStateOf(false) }
+
+    var expandedThemeMenu by remember { mutableStateOf(false) }
+    val selectedTheme by viewModel.currentTheme.collectAsState()
 
     val galleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
@@ -155,6 +159,47 @@ fun ProfileScreen(
             icon = Icons.Default.Lock,
             onClick = { showPasswordDialog = true }
         )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Box(modifier = Modifier.fillMaxWidth()) {
+            ProfileOptionCard(
+                title = "App Theme: ${selectedTheme.name.lowercase().replaceFirstChar { it.uppercase() }}",
+                icon = Icons.Default.Palette,
+                onClick = { expandedThemeMenu = true }
+            )
+
+            DropdownMenu(
+                expanded = expandedThemeMenu,
+                onDismissRequest = { expandedThemeMenu = false },
+                modifier = Modifier.background(MaterialTheme.colorScheme.surface)
+            ) {
+                DropdownMenuItem(
+                    text = { Text("System Default", color = MaterialTheme.colorScheme.onSurface) },
+                    onClick = {
+                        viewModel.updateTheme(ThemeMode.SYSTEM)
+                        expandedThemeMenu = false
+                    },
+                    leadingIcon = { Icon(Icons.Default.Settings, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant) }
+                )
+                DropdownMenuItem(
+                    text = { Text("Light", color = MaterialTheme.colorScheme.onSurface) },
+                    onClick = {
+                        viewModel.updateTheme(ThemeMode.LIGHT)
+                        expandedThemeMenu = false
+                    },
+                    leadingIcon = { Icon(Icons.Default.LightMode, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant) }
+                )
+                DropdownMenuItem(
+                    text = { Text("Dark", color = MaterialTheme.colorScheme.onSurface) },
+                    onClick = {
+                        viewModel.updateTheme(ThemeMode.DARK)
+                        expandedThemeMenu = false
+                    },
+                    leadingIcon = { Icon(Icons.Default.DarkMode, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant) }
+                )
+            }
+        }
 
         Spacer(modifier = Modifier.height(16.dp))
 
