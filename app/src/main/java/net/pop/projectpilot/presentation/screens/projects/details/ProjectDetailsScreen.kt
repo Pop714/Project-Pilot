@@ -31,6 +31,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import coil.compose.AsyncImage
 import net.pop.projectpilot.data.firestore.Project
+import net.pop.projectpilot.data.firestore.Task
 import net.pop.projectpilot.presentation.components.AddMemberDialog
 import net.pop.projectpilot.presentation.components.TaskCard
 
@@ -40,7 +41,8 @@ fun ProjectDetailsScreen(
     viewModel: ProjectDetailsViewModel = hiltViewModel(),
     onNavigateBack: () -> Unit,
     onNavigateToEdit: (Project) -> Unit,
-    onNavigateToAddTask: (String) -> Unit
+    onNavigateToAddTask: (String) -> Unit,
+    onNavigateToTask: (Task) -> Unit
 ) {
     val state by viewModel.uiState.collectAsState()
     val inviteMessage by viewModel.inviteMessage.collectAsState()
@@ -88,7 +90,11 @@ fun ProjectDetailsScreen(
                     .clip(CircleShape)
                     .background(MaterialTheme.colorScheme.surface)
             ) {
-                Icon(Icons.Default.ArrowBackIosNew, contentDescription = "Back", tint = MaterialTheme.colorScheme.onSurface)
+                Icon(
+                    Icons.Default.ArrowBackIosNew,
+                    contentDescription = "Back",
+                    tint = MaterialTheme.colorScheme.onSurface
+                )
             }
 
             Text(
@@ -98,7 +104,8 @@ fun ProjectDetailsScreen(
             )
 
             Row {
-                val isOwner = (state as? ProjectDetailsState.Success)?.currentUserId == project.userId
+                val isOwner =
+                    (state as? ProjectDetailsState.Success)?.currentUserId == project.userId
 
                 if (isOwner) {
                     IconButton(
@@ -108,7 +115,11 @@ fun ProjectDetailsScreen(
                             .clip(CircleShape)
                             .background(MaterialTheme.colorScheme.errorContainer)
                     ) {
-                        Icon(Icons.Default.Delete, contentDescription = "Delete Project", tint = MaterialTheme.colorScheme.onErrorContainer)
+                        Icon(
+                            Icons.Default.Delete,
+                            contentDescription = "Delete Project",
+                            tint = MaterialTheme.colorScheme.onErrorContainer
+                        )
                     }
                     Spacer(modifier = Modifier.width(8.dp))
                 }
@@ -120,7 +131,11 @@ fun ProjectDetailsScreen(
                         .clip(CircleShape)
                         .background(MaterialTheme.colorScheme.primaryContainer)
                 ) {
-                    Icon(Icons.Default.Edit, contentDescription = "Edit Project", tint = MaterialTheme.colorScheme.onPrimaryContainer)
+                    Icon(
+                        Icons.Default.Edit,
+                        contentDescription = "Edit Project",
+                        tint = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
                 }
             }
         }
@@ -131,11 +146,13 @@ fun ProjectDetailsScreen(
                     CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
                 }
             }
+
             is ProjectDetailsState.Error -> {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Text(text = currentState.message, color = MaterialTheme.colorScheme.error)
                 }
             }
+
             is ProjectDetailsState.Success -> {
                 val currentProject = currentState.project
                 val members = currentState.members
@@ -154,11 +171,28 @@ fun ProjectDetailsScreen(
                         Spacer(modifier = Modifier.height(16.dp))
 
                         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                            Surface(shape = RoundedCornerShape(8.dp), color = MaterialTheme.colorScheme.secondaryContainer) {
-                                Row(modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
-                                    Icon(Icons.Outlined.CheckCircle, contentDescription = null, modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.onSecondaryContainer)
+                            Surface(
+                                shape = RoundedCornerShape(8.dp),
+                                color = MaterialTheme.colorScheme.secondaryContainer
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(
+                                        horizontal = 12.dp,
+                                        vertical = 6.dp
+                                    ), verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Icon(
+                                        Icons.Outlined.CheckCircle,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(16.dp),
+                                        tint = MaterialTheme.colorScheme.onSecondaryContainer
+                                    )
                                     Spacer(modifier = Modifier.width(6.dp))
-                                    Text(currentProject.status, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSecondaryContainer)
+                                    Text(
+                                        currentProject.status,
+                                        style = MaterialTheme.typography.labelMedium,
+                                        color = MaterialTheme.colorScheme.onSecondaryContainer
+                                    )
                                 }
                             }
 
@@ -168,45 +202,109 @@ fun ProjectDetailsScreen(
                                 "low" -> Color(0xFF81C784)
                                 else -> MaterialTheme.colorScheme.primary
                             }
-                            Surface(shape = RoundedCornerShape(8.dp), color = priorityColor.copy(alpha = 0.15f)) {
-                                Row(modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
-                                    Icon(Icons.Outlined.Flag, contentDescription = null, modifier = Modifier.size(16.dp), tint = priorityColor)
+                            Surface(
+                                shape = RoundedCornerShape(8.dp),
+                                color = priorityColor.copy(alpha = 0.15f)
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(
+                                        horizontal = 12.dp,
+                                        vertical = 6.dp
+                                    ), verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Icon(
+                                        Icons.Outlined.Flag,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(16.dp),
+                                        tint = priorityColor
+                                    )
                                     Spacer(modifier = Modifier.width(6.dp))
-                                    Text(currentProject.priority, style = MaterialTheme.typography.labelMedium, color = priorityColor)
+                                    Text(
+                                        currentProject.priority,
+                                        style = MaterialTheme.typography.labelMedium,
+                                        color = priorityColor
+                                    )
                                 }
                             }
                         }
 
                         Spacer(modifier = Modifier.height(24.dp))
-                        Text(text = "Description", style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold), color = MaterialTheme.colorScheme.onBackground)
+                        Text(
+                            text = "Description",
+                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                            color = MaterialTheme.colorScheme.onBackground
+                        )
                         Spacer(modifier = Modifier.height(8.dp))
-                        Text(text = currentProject.description, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(
+                            text = currentProject.description,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
 
                         Spacer(modifier = Modifier.height(24.dp))
-                        HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                        HorizontalDivider(
+                            color = MaterialTheme.colorScheme.surfaceVariant.copy(
+                                alpha = 0.5f
+                            )
+                        )
                         Spacer(modifier = Modifier.height(24.dp))
 
-                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
                             Column {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Icon(Icons.Outlined.DateRange, contentDescription = null, modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                                    Icon(
+                                        Icons.Outlined.DateRange,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(16.dp),
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
                                     Spacer(modifier = Modifier.width(6.dp))
-                                    Text("Created At", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                    Text(
+                                        "Created At",
+                                        style = MaterialTheme.typography.labelMedium,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
                                 }
-                                Text(currentProject.createdAt, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onBackground, modifier = Modifier.padding(top = 4.dp))
+                                Text(
+                                    currentProject.createdAt,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onBackground,
+                                    modifier = Modifier.padding(top = 4.dp)
+                                )
                             }
                             Column {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Icon(Icons.Outlined.Update, contentDescription = null, modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                                    Icon(
+                                        Icons.Outlined.Update,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(16.dp),
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
                                     Spacer(modifier = Modifier.width(6.dp))
-                                    Text("Last Updated", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                    Text(
+                                        "Last Updated",
+                                        style = MaterialTheme.typography.labelMedium,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
                                 }
-                                Text(currentProject.lastUpdated, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onBackground, modifier = Modifier.padding(top = 4.dp))
+                                Text(
+                                    currentProject.lastUpdated,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onBackground,
+                                    modifier = Modifier.padding(top = 4.dp)
+                                )
                             }
                         }
 
                         Spacer(modifier = Modifier.height(24.dp))
-                        HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                        HorizontalDivider(
+                            color = MaterialTheme.colorScheme.surfaceVariant.copy(
+                                alpha = 0.5f
+                            )
+                        )
                         Spacer(modifier = Modifier.height(24.dp))
 
                         Row(
@@ -214,11 +312,19 @@ fun ProjectDetailsScreen(
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text(text = "Team Members (${members.size})", style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold), color = MaterialTheme.colorScheme.onBackground)
+                            Text(
+                                text = "Team Members (${members.size})",
+                                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                                color = MaterialTheme.colorScheme.onBackground
+                            )
 
                             if (isOwner) {
                                 TextButton(onClick = { showInviteDialog = true }) {
-                                    Icon(Icons.Default.PersonAdd, contentDescription = null, modifier = Modifier.size(18.dp))
+                                    Icon(
+                                        Icons.Default.PersonAdd,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(18.dp)
+                                    )
                                     Spacer(modifier = Modifier.width(6.dp))
                                     Text("Invite")
                                 }
@@ -232,7 +338,10 @@ fun ProjectDetailsScreen(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(vertical = 8.dp)
-                                .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(12.dp))
+                                .background(
+                                    MaterialTheme.colorScheme.surface,
+                                    RoundedCornerShape(12.dp)
+                                )
                                 .padding(12.dp),
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.SpaceBetween
@@ -249,16 +358,28 @@ fun ProjectDetailsScreen(
                                 )
                                 Spacer(modifier = Modifier.width(16.dp))
                                 Column {
-                                    Text(text = member.name, style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold), color = MaterialTheme.colorScheme.onSurface)
+                                    Text(
+                                        text = member.name,
+                                        style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold),
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
                                     if (member.id == currentProject.userId) {
-                                        Text("Owner", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
+                                        Text(
+                                            "Owner",
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = MaterialTheme.colorScheme.primary
+                                        )
                                     }
                                 }
                             }
 
                             if (isOwner && member.id != currentProject.userId) {
                                 IconButton(onClick = { memberToRemove = member }) {
-                                    Icon(Icons.Default.PersonRemove, contentDescription = "Remove Member", tint = MaterialTheme.colorScheme.error)
+                                    Icon(
+                                        Icons.Default.PersonRemove,
+                                        contentDescription = "Remove Member",
+                                        tint = MaterialTheme.colorScheme.error
+                                    )
                                 }
                             }
                         }
@@ -293,9 +414,8 @@ fun ProjectDetailsScreen(
                                 Spacer(modifier = Modifier.width(6.dp))
                                 Text("Add Task")
                             }
-
-                            Spacer(modifier = Modifier.height(16.dp))
                         }
+                        Spacer(modifier = Modifier.height(16.dp))
                     }
 
                     if (currentState.tasks.isEmpty()) {
@@ -309,13 +429,26 @@ fun ProjectDetailsScreen(
                         }
                     } else {
                         items(currentState.tasks) { task ->
-                            TaskCard(task)
+                            TaskCard(
+                                task,
+                                onStatusToggle = {
+                                    viewModel.toggleTaskStatus(
+                                        task.id,
+                                        task.status
+                                    )
+                                },
+                                onNavigationToTaskDetails = onNavigateToTask
+                            )
                         }
                     }
 
                     item {
                         Spacer(modifier = Modifier.height(24.dp))
-                        HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                        HorizontalDivider(
+                            color = MaterialTheme.colorScheme.surfaceVariant.copy(
+                                alpha = 0.5f
+                            )
+                        )
                         Spacer(modifier = Modifier.height(24.dp))
                     }
                 }

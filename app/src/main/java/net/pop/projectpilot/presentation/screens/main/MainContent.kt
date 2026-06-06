@@ -34,9 +34,12 @@ import net.pop.projectpilot.presentation.screens.navigation.main.FloatingBottomN
 import net.pop.projectpilot.presentation.screens.profile.ProfileScreen
 import net.pop.projectpilot.presentation.screens.projects.display.ProjectsScreen
 import com.google.gson.Gson
+import net.pop.projectpilot.data.firestore.Task
 import net.pop.projectpilot.presentation.screens.projects.addEdit.AddEditProjectScreen
 import net.pop.projectpilot.presentation.screens.projects.details.ProjectDetailsScreen
 import net.pop.projectpilot.presentation.screens.projects.tasks.AddTaskScreen
+import net.pop.projectpilot.presentation.screens.projects.tasks.details.TaskDetailsScreen
+import kotlin.jvm.java
 
 @Composable
 fun MainContent(
@@ -129,9 +132,14 @@ fun MainContent(
                         onNavigateToEdit = { projectToEdit ->
                             val editJson = Uri.encode(Gson().toJson(projectToEdit))
                             navController.navigate("${BottomNavItem.AddProject.route}?projectJson=$editJson")
-                        }, onNavigateToAddTask = {
+                        },
+                        onNavigateToAddTask = {
                             navController.navigate("${BottomNavItem.AddTask.route}/${project.id}")
-                        }
+                        },
+                        onNavigateToTask = { task ->
+                            val taskJsonString = Uri.encode(Gson().toJson(task))
+                            navController.navigate("${BottomNavItem.TaskDetails.route}?taskJson=$taskJsonString")
+                        },
                     )
                 }
             }
@@ -172,8 +180,28 @@ fun MainContent(
                     )
                 }
             }
-            composable(BottomNavItem.TaskDetails.route) {
-
+            composable(
+                route = "${BottomNavItem.TaskDetails.route}?taskJson={taskJson}",
+                arguments = listOf(
+                    navArgument("taskJson") {
+                        type = NavType.StringType
+                        nullable = true
+                        defaultValue = null
+                    }
+                )
+            ) { backStackEntry ->
+                val taskJson = backStackEntry.arguments?.getString("taskJson")
+                val task = if (!taskJson.isNullOrEmpty()) {
+                    Gson().fromJson(taskJson, Task::class.java)
+                } else {
+                    null
+                }
+                if (task != null) {
+                    TaskDetailsScreen(
+                        task = task,
+                        onNavigateBack = { navController.navigateUp() }
+                    )
+                }
             }
             composable(BottomNavItem.Focus.route) {
                 FocusScreen()

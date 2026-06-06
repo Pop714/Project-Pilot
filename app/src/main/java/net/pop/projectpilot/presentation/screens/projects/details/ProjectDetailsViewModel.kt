@@ -163,4 +163,23 @@ class ProjectDetailsViewModel @Inject constructor(
     fun clearInviteMessage() {
         _inviteMessage.value = null
     }
+
+    fun toggleTaskStatus(taskId: String, currentStatus: String) {
+        val newStatus = if (currentStatus == "In Progress") "Completed" else "In Progress"
+        viewModelScope.launch {
+            try {
+                firestore.collection("tasks").document(taskId).update("status", newStatus).await()
+
+                val currentState = _uiState.value
+                if (currentState is ProjectDetailsState.Success) {
+                    val updatedTasks = currentState.tasks.map {
+                        if (it.id == taskId) it.copy(status = newStatus) else it
+                    }
+                    _uiState.value = currentState.copy(tasks = updatedTasks)
+                }
+            } catch (_: Exception) {
+
+            }
+        }
+    }
 }
