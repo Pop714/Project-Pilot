@@ -42,7 +42,6 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -71,10 +70,9 @@ import net.pop.projectpilot.presentation.components.EditNameDialog
 import net.pop.projectpilot.presentation.components.EditPasswordDialog
 import net.pop.projectpilot.presentation.components.ProfileOptionCard
 import net.pop.projectpilot.presentation.components.SaveAccountPasswordDialog
-import net.pop.projectpilot.presentation.components.ThemeOptionItem
+import net.pop.projectpilot.presentation.components.OptionItem
 import net.pop.projectpilot.presentation.ui.theme.ThemeMode
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(
     viewModel: ProfileViewModel = hiltViewModel(),
@@ -268,19 +266,19 @@ fun ProfileScreen(
                                 .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f))
                                 .padding(vertical = 8.dp)
                         ) {
-                            ThemeOptionItem(
+                            OptionItem(
                                 title = "System Default",
                                 icon = Icons.Default.Settings,
                                 isSelected = selectedTheme == ThemeMode.SYSTEM,
                                 onClick = { viewModel.updateTheme(ThemeMode.SYSTEM) }
                             )
-                            ThemeOptionItem(
+                            OptionItem(
                                 title = "Light Mode",
                                 icon = Icons.Default.LightMode,
                                 isSelected = selectedTheme == ThemeMode.LIGHT,
                                 onClick = { viewModel.updateTheme(ThemeMode.LIGHT) }
                             )
-                            ThemeOptionItem(
+                            OptionItem(
                                 title = "Dark Mode",
                                 icon = Icons.Default.DarkMode,
                                 isSelected = selectedTheme == ThemeMode.DARK,

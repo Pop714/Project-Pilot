@@ -20,7 +20,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun ThemeOptionItem(
+fun OptionItem(
     title: String,
     icon: ImageVector,
     isSelected: Boolean,
