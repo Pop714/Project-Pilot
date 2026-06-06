@@ -38,11 +38,42 @@ class ProfileViewModel @Inject constructor(
     private val _state = MutableStateFlow(ProfileState())
     val state: StateFlow<ProfileState> = _state.asStateFlow()
 
+    private val _isRefreshing = MutableStateFlow(false)
+    val isRefreshing: StateFlow<Boolean> = _isRefreshing.asStateFlow()
+
     init {
         loadUserProfile()
     }
 
+    fun refreshProfile() {
+        val user = auth.currentUser ?: return
+        val email = user.email ?: return
+
+        _isRefreshing.value = true
+
+        viewModelScope.launch {
+            try {
+                val doc = firestore.collection("users").document(user.uid).get().await()
+                val isSaved = savedAccountDao.isAccountSaved(email)
+                _state.update {
+                    it.copy(
+                        name = doc.getString("name") ?: "User",
+                        email = email,
+                        profileImageUrl = doc.getString("profileImageUrl"),
+                        isAccountSaved = isSaved,
+                        isLoading = false
+                    )
+                }
+            } catch (_: Exception) {
+                _state.update { it.copy(error = "Failed to load profile data") }
+            } finally {
+                _isRefreshing.value = false
+            }
+        }
+    }
+
     private fun loadUserProfile() {
+        _state.update { it.copy(isLoading = true) }
         val user = auth.currentUser ?: return
         val email = user.email ?: return
         viewModelScope.launch {
@@ -52,7 +83,7 @@ class ProfileViewModel @Inject constructor(
                 _state.update {
                     it.copy(
                         name = doc.getString("name") ?: "User",
-                        email = user.email ?: "",
+                        email = email,
                         profileImageUrl = doc.getString("profileImageUrl"),
                         isAccountSaved = isSaved,
                         isLoading = false
@@ -222,5 +253,4 @@ class ProfileViewModel @Inject constructor(
             themePreferences.saveTheme(mode)
         }
     }
-
 }
