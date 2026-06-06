@@ -1,4 +1,4 @@
-package net.pop.projectpilot.presentation.screens.projects.tasks
+package net.pop.projectpilot.presentation.screens.projects.tasks.add
 
 sealed class AddTaskState {
     object Idle : AddTaskState()

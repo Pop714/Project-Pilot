@@ -24,26 +24,36 @@ class HomeViewModel @Inject constructor(
     private val _state = MutableStateFlow<HomeState>(HomeState.Loading)
     val state: StateFlow<HomeState> = _state.asStateFlow()
 
+    private val _isRefreshing = MutableStateFlow(false)
+    val isRefreshing: StateFlow<Boolean> = _isRefreshing.asStateFlow()
+
     init {
         fetchHomeData()
     }
 
-    fun fetchHomeData() {
+    fun fetchHomeData(isRefresh: Boolean = false) {
         val userId = auth.currentUser?.uid
         if (userId == null) {
             _state.value = HomeState.Error("User not logged in")
             return
         }
-        _state.value = HomeState.Loading
+
+        if (isRefresh) {
+            _isRefreshing.value = true
+        } else {
+            _state.value = HomeState.Loading
+        }
+
         viewModelScope.launch {
             try {
                 val userDeferred = async { firestore.collection("users").document(userId).get().await() }
 
-                val allProjectsDeferred = async {
-                    firestore.collection("projects")
-                        .whereArrayContains("members", userId)
-                        .get().await()
-                }
+                val allProjectsSnapshot = firestore.collection("projects")
+                    .whereArrayContains("members", userId)
+                    .get().await()
+
+                val projectIds = allProjectsSnapshot.documents.map { it.id }
+                val activeProjectsCount = projectIds.size
 
                 val recentProjectsDeferred = async {
                     firestore.collection("projects")
@@ -53,22 +63,26 @@ class HomeViewModel @Inject constructor(
                         .get().await()
                 }
 
-                val tasksDeferred = async {
-                    firestore.collection("tasks")
-                        .whereEqualTo("userId", userId)
-                        .whereEqualTo("status", "pending")
-                        .get().await()
+                var pendingTasksCount = 0
+                if (projectIds.isNotEmpty()) {
+                    val chunks = projectIds.chunked(10)
+                    for (chunk in chunks) {
+                        val tasksSnapshot = firestore.collection("tasks")
+                            .whereIn("projectId", chunk)
+                            .get().await()
+
+                        pendingTasksCount += tasksSnapshot.documents.count { doc ->
+                            val status = doc.getString("status")?.lowercase() ?: ""
+                            status == "pending" || status == "in progress"
+                        }
+                    }
                 }
 
                 val userDoc = userDeferred.await()
-                val allProjectsSnapshot = allProjectsDeferred.await()
                 val recentProjectsSnapshot = recentProjectsDeferred.await()
-                val tasksSnapshot = tasksDeferred.await()
 
                 val userName = userDoc.getString("name")?.split(" ")?.firstOrNull() ?: "User"
-                val activeProjectsCount = allProjectsSnapshot.size()
                 val recentProjects = recentProjectsSnapshot.toObjects(Project::class.java)
-                val pendingTasksCount = tasksSnapshot.size()
 
                 _state.value = HomeState.Success(
                     userName = userName,
@@ -79,8 +93,11 @@ class HomeViewModel @Inject constructor(
 
             } catch (e: Exception) {
                 _state.value = HomeState.Error(e.message ?: "An unexpected error occurred")
+            } finally {
+                if (isRefresh) {
+                    _isRefreshing.value = false
+                }
             }
         }
     }
-
 }

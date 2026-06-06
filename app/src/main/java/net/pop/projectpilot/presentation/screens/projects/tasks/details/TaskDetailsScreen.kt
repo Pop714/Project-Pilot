@@ -44,12 +44,12 @@ fun TaskDetailsScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .padding(horizontal = 10.dp)
             .background(MaterialTheme.colorScheme.background)
     ) {
         Row(
             modifier = Modifier
-                .fillMaxWidth()
-                ,
+                .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconButton(
@@ -59,10 +59,18 @@ fun TaskDetailsScreen(
                     .clip(CircleShape)
                     .background(MaterialTheme.colorScheme.surface)
             ) {
-                Icon(Icons.Default.ArrowBackIosNew, contentDescription = "Back", tint = MaterialTheme.colorScheme.onSurface)
+                Icon(
+                    Icons.Default.ArrowBackIosNew,
+                    contentDescription = "Back",
+                    tint = MaterialTheme.colorScheme.onSurface
+                )
             }
             Spacer(modifier = Modifier.width(16.dp))
-            Text("Task Details", style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold), color = MaterialTheme.colorScheme.onBackground)
+            Text(
+                "Task Details",
+                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                color = MaterialTheme.colorScheme.onBackground
+            )
         }
 
         when (val currentState = state) {
@@ -71,11 +79,13 @@ fun TaskDetailsScreen(
                     CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
                 }
             }
+
             is TaskDetailsState.Error -> {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Text(currentState.message, color = MaterialTheme.colorScheme.error)
                 }
             }
+
             is TaskDetailsState.Success -> {
                 val currentTask = currentState.task
                 val attachments = currentState.attachments
@@ -93,17 +103,28 @@ fun TaskDetailsScreen(
                         Spacer(modifier = Modifier.height(16.dp))
 
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            val statusColor = if (currentTask.status.lowercase() == "completed") Color(0xFF4CAF50) else MaterialTheme.colorScheme.primary
-                            Surface(shape = RoundedCornerShape(8.dp), color = statusColor.copy(alpha = 0.15f)) {
+                            val statusColor =
+                                if (currentTask.status.lowercase() == "completed") Color(0xFF4CAF50) else MaterialTheme.colorScheme.primary
+                            Surface(
+                                shape = RoundedCornerShape(8.dp),
+                                color = statusColor.copy(alpha = 0.15f)
+                            ) {
                                 Text(
                                     text = currentTask.status,
-                                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                                    modifier = Modifier.padding(
+                                        horizontal = 12.dp,
+                                        vertical = 6.dp
+                                    ),
                                     style = MaterialTheme.typography.labelMedium,
                                     color = statusColor
                                 )
                             }
                             Spacer(modifier = Modifier.width(12.dp))
-                            Text(currentTask.createdAt, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text(
+                                currentTask.createdAt,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
                         }
 
                         if (currentTask.voicePath.isNotBlank()) {
@@ -112,21 +133,38 @@ fun TaskDetailsScreen(
                                 shape = RoundedCornerShape(12.dp),
                                 color = MaterialTheme.colorScheme.primaryContainer,
                                 modifier = Modifier.clickable {
-                                    val intent = Intent(Intent.ACTION_VIEW,
-                                        currentTask.voicePath.toUri())
+                                    val intent = Intent(
+                                        Intent.ACTION_VIEW,
+                                        currentTask.voicePath.toUri()
+                                    )
                                     context.startActivity(intent)
                                 }
                             ) {
-                                Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
-                                    Icon(Icons.Default.Mic, contentDescription = "Voice Note", tint = MaterialTheme.colorScheme.onPrimaryContainer)
+                                Row(
+                                    modifier = Modifier.padding(12.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Icon(
+                                        Icons.Default.Mic,
+                                        contentDescription = "Voice Note",
+                                        tint = MaterialTheme.colorScheme.onPrimaryContainer
+                                    )
                                     Spacer(modifier = Modifier.width(8.dp))
-                                    Text("Play Voice Note", color = MaterialTheme.colorScheme.onPrimaryContainer, fontWeight = FontWeight.SemiBold)
+                                    Text(
+                                        "Play Voice Note",
+                                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                        fontWeight = FontWeight.SemiBold
+                                    )
                                 }
                             }
                         }
 
                         Spacer(modifier = Modifier.height(32.dp))
-                        HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                        HorizontalDivider(
+                            color = MaterialTheme.colorScheme.surfaceVariant.copy(
+                                alpha = 0.5f
+                            )
+                        )
                         Spacer(modifier = Modifier.height(24.dp))
 
                         Row(
@@ -134,9 +172,17 @@ fun TaskDetailsScreen(
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text("Attachments (${attachments.size})", style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold), color = MaterialTheme.colorScheme.onBackground)
+                            Text(
+                                "Attachments (${attachments.size})",
+                                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                                color = MaterialTheme.colorScheme.onBackground
+                            )
                             TextButton(onClick = { showAddAttachmentDialog = true }) {
-                                Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(18.dp))
+                                Icon(
+                                    Icons.Default.Add,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(18.dp)
+                                )
                                 Spacer(modifier = Modifier.width(6.dp))
                                 Text("Add")
                             }
@@ -146,14 +192,19 @@ fun TaskDetailsScreen(
 
                     if (attachments.isEmpty()) {
                         item {
-                            Text("No attachments yet.", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text(
+                                "No attachments yet.",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
                         }
                     } else {
                         items(attachments) { attachment ->
                             AttachmentCard(
                                 attachment = attachment,
                                 onClick = {
-                                    val urlToOpen = if (attachment.type == "url") attachment.url else attachment.file
+                                    val urlToOpen =
+                                        if (attachment.type == "url") attachment.url else attachment.file
                                     if (urlToOpen.isNotBlank()) {
                                         val intent = Intent(Intent.ACTION_VIEW, urlToOpen.toUri())
                                         context.startActivity(intent)

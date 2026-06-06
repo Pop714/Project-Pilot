@@ -1,4 +1,4 @@
-package net.pop.projectpilot.presentation.screens.projects.tasks
+package net.pop.projectpilot.presentation.screens.projects.tasks.add
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope

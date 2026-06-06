@@ -24,6 +24,9 @@ class ProjectsViewModel @Inject constructor(
     private val _uiState = MutableStateFlow<ProjectsUiState>(ProjectsUiState.Loading)
     val uiState: StateFlow<ProjectsUiState> = _uiState.asStateFlow()
 
+    private val _isRefreshing = MutableStateFlow(false)
+    val isRefreshing: StateFlow<Boolean> = _isRefreshing.asStateFlow()
+
     init {
         fetchUserProjects()
     }
@@ -35,7 +38,9 @@ class ProjectsViewModel @Inject constructor(
             return
         }
 
-        if (!isRefresh) {
+        if (isRefresh) {
+            _isRefreshing.value = true
+        } else {
             _uiState.value = ProjectsUiState.Loading
         }
 
@@ -55,6 +60,10 @@ class ProjectsViewModel @Inject constructor(
 
             } catch (e: Exception) {
                 _uiState.value = ProjectsUiState.Error(e.message ?: "Failed to load projects")
+            } finally {
+                if (isRefresh) {
+                    _isRefreshing.value = false
+                }
             }
         }
     }

@@ -2,9 +2,10 @@ package net.pop.projectpilot.presentation.screens.projects.tasks.details
 
 import android.content.Context
 import android.net.Uri
+import android.util.Log
+import android.webkit.MimeTypeMap
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -25,7 +26,6 @@ import javax.inject.Inject
 
 @HiltViewModel
 class TaskDetailsViewModel @Inject constructor(
-    private val auth: FirebaseAuth,
     private val firestore: FirebaseFirestore,
     private val supabaseClient: SupabaseClient,
     @ApplicationContext private val context: Context
@@ -63,13 +63,19 @@ class TaskDetailsViewModel @Inject constructor(
         if (title.isBlank()) return
 
         viewModelScope.launch {
+            _uiState.value = TaskDetailsState.Loading
+
             try {
                 var uploadedFilePath = ""
 
                 if (type == "file" && fileUri != null) {
                     val bytes = context.contentResolver.openInputStream(fileUri)?.readBytes()
                     if (bytes != null) {
-                        val fileName = "${UUID.randomUUID()}"
+                        val mimeType = context.contentResolver.getType(fileUri)
+                        val extension = MimeTypeMap.getSingleton().getExtensionFromMimeType(mimeType) ?: "bin"
+
+                        val fileName = "${UUID.randomUUID()}.$extension"
+
                         val bucket = supabaseClient.storage["task_attachments"]
                         bucket.upload(fileName, bytes)
                         uploadedFilePath = bucket.publicUrl(fileName)
@@ -91,9 +97,12 @@ class TaskDetailsViewModel @Inject constructor(
                 )
 
                 docRef.set(newAttachment).await()
+
                 fetchAttachments(taskId)
 
-            } catch (_: Exception) {
+            } catch (e: Exception) {
+                Log.e("Abbas", e.message.toString())
+                _uiState.value = TaskDetailsState.Error(e.message ?: "Failed to add attachment")
             }
         }
     }
@@ -104,7 +113,7 @@ class TaskDetailsViewModel @Inject constructor(
                 firestore.collection("attachments").document(attachmentId).delete().await()
                 currentTask?.let { fetchAttachments(it.id) }
             } catch (e: Exception) {
-
+                _uiState.value = TaskDetailsState.Error(e.message ?: "Failed to delete attachment")
             }
         }
     }

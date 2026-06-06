@@ -31,6 +31,9 @@ class ProjectDetailsViewModel @Inject constructor(
     private val _projectDeleted = MutableStateFlow(false)
     val projectDeleted: StateFlow<Boolean> = _projectDeleted.asStateFlow()
 
+    private val _isRefreshing = MutableStateFlow(false)
+    val isRefreshing: StateFlow<Boolean> = _isRefreshing.asStateFlow()
+
     private var currentProject: Project? = null
 
     fun loadProjectDetails(project: Project) {
@@ -38,11 +41,37 @@ class ProjectDetailsViewModel @Inject constructor(
         fetchMembers(project)
     }
 
-    private fun fetchMembers(project: Project) {
+    fun refresh() {
+        val projectId = currentProject?.id ?: return
+
+        viewModelScope.launch {
+            _isRefreshing.value = true
+
+            try {
+                val projectSnapshot = firestore.collection("projects").document(projectId).get().await()
+                val updatedProject = projectSnapshot.toObject(Project::class.java)
+
+                if (updatedProject != null) {
+                    currentProject = updatedProject
+                    fetchMembers(updatedProject, isRefresh = true)
+                } else {
+                    _isRefreshing.value = false
+                }
+            } catch (_: Exception) {
+                _isRefreshing.value = false
+            }
+        }
+    }
+
+    private fun fetchMembers(project: Project, isRefresh: Boolean = false) {
+        if (isRefresh) {
+            _isRefreshing.value = true
+        } else {
+            _uiState.value = ProjectDetailsState.Loading
+        }
+
         viewModelScope.launch {
             try {
-                _uiState.value = ProjectDetailsState.Loading
-
                 val membersList = mutableListOf<MemberUiModel>()
                 if (project.members.isNotEmpty()) {
                     val chunks = project.members.chunked(10)
@@ -79,6 +108,10 @@ class ProjectDetailsViewModel @Inject constructor(
 
             } catch (e: Exception) {
                 _uiState.value = ProjectDetailsState.Error(e.message ?: "Failed to load members")
+            } finally {
+                if (isRefresh) {
+                    _isRefreshing.value = false
+                }
             }
         }
     }
@@ -160,6 +193,22 @@ class ProjectDetailsViewModel @Inject constructor(
         }
     }
 
+    fun deleteTask(taskId: String) {
+        viewModelScope.launch {
+            try {
+                firestore.collection("tasks").document(taskId).delete().await()
+
+                val currentState = _uiState.value
+                if (currentState is ProjectDetailsState.Success) {
+                    val updatedTasks = currentState.tasks.filter { it.id != taskId }
+                    _uiState.value = currentState.copy(tasks = updatedTasks)
+                }
+            } catch (_: Exception) {
+                _inviteMessage.value = "Failed to delete task."
+            }
+        }
+    }
+
     fun clearInviteMessage() {
         _inviteMessage.value = null
     }
@@ -178,7 +227,7 @@ class ProjectDetailsViewModel @Inject constructor(
                     _uiState.value = currentState.copy(tasks = updatedTasks)
                 }
             } catch (_: Exception) {
-
+                _inviteMessage.value = "Failed to change task status!"
             }
         }
     }

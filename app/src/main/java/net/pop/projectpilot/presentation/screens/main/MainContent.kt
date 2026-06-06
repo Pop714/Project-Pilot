@@ -37,7 +37,7 @@ import com.google.gson.Gson
 import net.pop.projectpilot.data.firestore.Task
 import net.pop.projectpilot.presentation.screens.projects.addEdit.AddEditProjectScreen
 import net.pop.projectpilot.presentation.screens.projects.details.ProjectDetailsScreen
-import net.pop.projectpilot.presentation.screens.projects.tasks.AddTaskScreen
+import net.pop.projectpilot.presentation.screens.projects.tasks.add.AddTaskScreen
 import net.pop.projectpilot.presentation.screens.projects.tasks.details.TaskDetailsScreen
 import kotlin.jvm.java
 

@@ -3,10 +3,12 @@ package net.pop.projectpilot.presentation.ui.main
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
 import androidx.fragment.app.FragmentActivity
 import dagger.hilt.android.AndroidEntryPoint
 import net.pop.projectpilot.domain.preferences.ThemePreferences
@@ -31,7 +33,10 @@ class MainActivity : FragmentActivity() {
             val currentTheme by themePreferences.themeMode.collectAsState(initial = ThemeMode.SYSTEM)
             ProjectPilotTheme(themeMode = currentTheme) {
                 RequestNotificationPermission()
-                Surface(color = MaterialTheme.colorScheme.background) {
+                Surface(
+                    color = MaterialTheme.colorScheme.background,
+                    modifier = Modifier.fillMaxSize()
+                ) {
                     ProjectPilotNavigation()
                 }
             }
