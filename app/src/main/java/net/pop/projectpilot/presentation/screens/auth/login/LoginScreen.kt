@@ -1,5 +1,6 @@
 package net.pop.projectpilot.presentation.screens.auth.login
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -12,6 +13,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -25,21 +27,23 @@ fun LoginScreen(
     onNavigateToRegister: () -> Unit,
     onLoginSuccess: () -> Unit
 ) {
-    // Input States
+    val context = LocalContext.current
+
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var saveAccount by remember { mutableStateOf(false) }
 
-    // Live Error States
     var emailError by remember { mutableStateOf<String?>(null) }
     var passwordError by remember { mutableStateOf<String?>(null) }
 
-    // Password Visibility State
     var passwordVisible by remember { mutableStateOf(false) }
+
+    var showResetDialog by remember { mutableStateOf(false) }
+    var resetEmail by remember { mutableStateOf("") }
+    var isResetting by remember { mutableStateOf(false) }
 
     val authState by viewModel.authState.collectAsState()
 
-    // Regex for basic email validation
     val emailPattern = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[a-zA-Z]{2,}$".toRegex()
 
     LaunchedEffect(authState) {
@@ -73,7 +77,6 @@ fun LoginScreen(
             modifier = Modifier.padding(top = 8.dp, bottom = 32.dp)
         )
 
-        // Email Field
         OutlinedTextField(
             value = email,
             onValueChange = {
@@ -95,7 +98,6 @@ fun LoginScreen(
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        // Password Field with Visibility Toggle
         OutlinedTextField(
             value = password,
             onValueChange = {
@@ -137,7 +139,10 @@ fun LoginScreen(
                 Text(text = "Save this account", style = MaterialTheme.typography.bodyMedium)
             }
 
-            TextButton(onClick = { /* Handle Forgot Password */ }) {
+            TextButton(onClick = {
+                resetEmail = email
+                showResetDialog = true
+            }) {
                 Text(
                     text = "Forgot Password?",
                     style = MaterialTheme.typography.labelMedium,
@@ -148,7 +153,6 @@ fun LoginScreen(
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        // Firebase Error Display
         if (authState is AuthState.Error) {
             Text(
                 text = (authState as AuthState.Error).message,
@@ -158,7 +162,6 @@ fun LoginScreen(
             )
         }
 
-        // Submit Button
         val isFormValid = email.isNotBlank() && password.isNotBlank() && emailError == null
 
         Button(
@@ -192,5 +195,64 @@ fun LoginScreen(
                 )
             }
         }
+    }
+
+    if (showResetDialog) {
+        AlertDialog(
+            onDismissRequest = { if (!isResetting) showResetDialog = false },
+            title = { Text("Reset Password") },
+            text = {
+                Column {
+                    Text(
+                        "Enter your email address and we will send you a link to reset your password.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    OutlinedTextField(
+                        value = resetEmail,
+                        onValueChange = { resetEmail = it },
+                        label = { Text("Email address") },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = MaterialTheme.shapes.medium
+                    )
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        isResetting = true
+                        viewModel.resetPassword(resetEmail) { success, message ->
+                            isResetting = false
+                            Toast.makeText(context, message, Toast.LENGTH_LONG).show()
+                            if (success) {
+                                showResetDialog = false
+                            }
+                        }
+                    },
+                    enabled = !isResetting && resetEmail.isNotBlank() && resetEmail.matches(emailPattern)
+                ) {
+                    if (isResetting) {
+                        CircularProgressIndicator(
+                            color = MaterialTheme.colorScheme.onPrimary,
+                            modifier = Modifier.size(16.dp),
+                            strokeWidth = 2.dp
+                        )
+                    } else {
+                        Text("Send Link")
+                    }
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { showResetDialog = false },
+                    enabled = !isResetting
+                ) {
+                    Text("Cancel")
+                }
+            }
+        )
     }
 }

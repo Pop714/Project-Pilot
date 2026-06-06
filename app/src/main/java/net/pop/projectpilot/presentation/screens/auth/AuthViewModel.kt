@@ -157,6 +157,21 @@ class AuthViewModel @Inject constructor(
         }
     }
 
+    fun resetPassword(email: String, onResult: (Boolean, String) -> Unit) {
+        if (email.isBlank()) {
+            onResult(false, "Please enter your email address.")
+            return
+        }
+        viewModelScope.launch {
+            try {
+                auth.sendPasswordResetEmail(email.trim()).await()
+                onResult(true, "Password reset link sent to your email.")
+            } catch (e: Exception) {
+                onResult(false, e.message ?: "Failed to send reset email.")
+            }
+        }
+    }
+
     fun resetState() {
         _authState.value = AuthState.Idle
     }

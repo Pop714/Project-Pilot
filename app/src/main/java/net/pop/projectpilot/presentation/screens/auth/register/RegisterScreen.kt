@@ -39,23 +39,19 @@ fun RegisterScreen(
 ) {
     val context = LocalContext.current
 
-    // Input States
     var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
     var imageUri by remember { mutableStateOf<Uri?>(null) }
 
-    // Error States
     var nameError by remember { mutableStateOf<String?>(null) }
     var emailError by remember { mutableStateOf<String?>(null) }
     var passwordError by remember { mutableStateOf<String?>(null) }
 
-    // Visibility States
     var passwordVisible by remember { mutableStateOf(false) }
     var confirmPasswordVisible by remember { mutableStateOf(false) }
 
-    // Derived State for Password
     val passwordStrength = remember(password) { evaluatePasswordStrength(password) }
     val passwordMismatchError = confirmPassword.isNotEmpty() && password != confirmPassword
 
@@ -107,7 +103,6 @@ fun RegisterScreen(
             modifier = Modifier.padding(top = 8.dp, bottom = 24.dp)
         )
 
-        // Profile Picture Picker
         Box(modifier = Modifier.size(120.dp)) {
             Box(
                 modifier = Modifier
@@ -152,7 +147,6 @@ fun RegisterScreen(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // Name Field
         OutlinedTextField(
             value = name,
             onValueChange = {
@@ -173,7 +167,6 @@ fun RegisterScreen(
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        // Email Field
         OutlinedTextField(
             value = email,
             onValueChange = {
@@ -195,7 +188,6 @@ fun RegisterScreen(
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        // Password Field
         OutlinedTextField(
             value = password,
             onValueChange = {
@@ -219,7 +211,6 @@ fun RegisterScreen(
             singleLine = true
         )
 
-        // Password Strength Indicator & Error Display
         if (password.isNotEmpty() && passwordError == null) {
             Column(
                 modifier = Modifier
@@ -255,7 +246,6 @@ fun RegisterScreen(
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        // Confirm Password Field
         OutlinedTextField(
             value = confirmPassword,
             onValueChange = { confirmPassword = it },
@@ -283,7 +273,6 @@ fun RegisterScreen(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // Auth Error Display
         if (authState is AuthState.Error) {
             Text(
                 text = (authState as AuthState.Error).message,
@@ -293,7 +282,6 @@ fun RegisterScreen(
             )
         }
 
-        // Validate Form State
         val isFormValid = name.isNotBlank() &&
                 emailError == null &&
                 passwordError == null &&
