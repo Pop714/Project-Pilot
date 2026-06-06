@@ -8,13 +8,25 @@ The project was designed to demonstrate modern Android development practices, in
 
 ## 📸 Screenshots
 
-| Login      | Dashboard  | Project Details |
-| ---------- | ---------- | --------------- |
-| Screenshot | Screenshot | Screenshot      |
+### Authentication
 
-| Task Details | Voice Notes | Settings   |
-| ------------ | ----------- | ---------- |
-| Screenshot   | Screenshot  | Screenshot |
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/6cca805f-62d5-425f-94be-7999a80d6260" width="250" alt="Login Screen"/>
+</p>
+
+### Project Management Workflow
+
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/60099412-b93c-4c59-ba92-77cb18e970de" width="250" alt="Home Dashboard"/>
+  <img src="https://github.com/user-attachments/assets/a65b0b6e-639f-498b-858f-ae23e7289e41" width="250" alt="Projects"/>
+  <img src="https://github.com/user-attachments/assets/0a28d31d-c515-40bd-bb76-252d59c935c2" width="250" alt="Project Details"/>
+</p>
+
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/fd78a232-04a1-41f3-b58d-c42924ce23ab" width="250" alt="Task Details"/>
+  <img src="https://github.com/user-attachments/assets/99798099-7ff1-451c-92b4-8988ecd989f2" width="250" alt="Focus Mode"/>
+  <img src="https://github.com/user-attachments/assets/e6a57483-27d0-4c70-99c8-7e17f7042764" width="250" alt="Profile"/>
+</p>
 
 ---
 
