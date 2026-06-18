@@ -59,10 +59,10 @@ fun ForceUpdateScreen() {
                 val appPackageName = context.packageName
                 try {
                     context.startActivity(Intent(Intent.ACTION_VIEW,
-                        "market://details?id=$appPackageName".toUri()))
+                        "https://github.com/Pop714/Project-Pilot/releases/".toUri()))
                 } catch (_: android.content.ActivityNotFoundException) {
                     context.startActivity(Intent(Intent.ACTION_VIEW,
-                        "https://play.google.com/store/apps/details?id=$appPackageName".toUri()))
+                        "https://github.com/Pop714/Project-Pilot/releases/".toUri()))
                 }
             },
             colors = ButtonDefaults.buttonColors(containerColor = TertiaryAmber),
